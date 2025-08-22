@@ -67,8 +67,8 @@ ENV FASTMCP_LOG_LEVEL=INFO
 ENV PYTHONPATH=/app
 
 # Health check for Coolify
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/mcp || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:8000/ || exit 1
 
 # Expose port
 EXPOSE 8000
