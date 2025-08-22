@@ -1,6 +1,9 @@
 # Nixpacks configuration for Word MCP Server
+[providers]
+python = "3.11"
+
 [phases.setup]
-nixPkgs = ["libreoffice"]
+nixPkgs = ["libreoffice", "python311", "python311Packages.pip"]
 
 [start]
 cmd = "word_mcp_server"
