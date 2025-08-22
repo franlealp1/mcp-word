@@ -5,7 +5,7 @@ providers = ["python"]
 nixPkgs = ["libreoffice", "python311", "python311Packages.pip"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt", "pip install --break-system-packages ."]
+cmds = ["pip install --break-system-packages -r requirements.txt", "pip install --break-system-packages ."]
 
 [start]
 cmd = "word_mcp_server"
