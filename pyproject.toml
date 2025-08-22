@@ -5,11 +5,11 @@ build-backend = "hatchling.build"
 [project]
 name = "office-word-mcp-server"
 version = "1.1.7"
-description = "MCP server for manipulating Microsoft Word documents"
+description = "MCP server for manipulating Microsoft Word documents - Coolify deployment adaptation"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
-    {name = "GongRzhe", email = "gongrzhe@gmail.com"}
+    {name = "Santiago Abregú", email = "santiabregu@gmail.com"}
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -25,8 +25,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/GongRzhe/Office-Word-MCP-Server.git"
-"Bug Tracker" = "https://github.com/GongRzhe/Office-Word-MCP-Server.git/issues"
+"Homepage" = "https://github.com/franlealp1/mcp-word.git"
+"Bug Tracker" = "https://github.com/franlealp1/mcp-word.git/issues"
 
 [tool.hatch.build.targets.wheel]
 only-include = [
