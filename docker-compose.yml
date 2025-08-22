@@ -24,13 +24,13 @@ services:
       - word_documents:/app/documents
       - word_temp:/app/temp
     
-    # Health check - check if port is listening
+    # Health check - use curl to check HTTP endpoint
     healthcheck:
-      test: ["CMD-SHELL", "netstat -tuln | grep :8000 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 60s
     
     # Resource limits
     deploy:
