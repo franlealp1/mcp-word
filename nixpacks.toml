@@ -4,6 +4,9 @@ providers = ["python"]
 [phases.setup]
 nixPkgs = ["libreoffice", "python311", "python311Packages.pip"]
 
+[phases.postInstall]
+cmds = ["pip install ."]
+
 [start]
 cmd = "word_mcp_server"
 
