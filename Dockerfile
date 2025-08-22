@@ -47,9 +47,14 @@ COPY __init__.py ./
 COPY LICENSE ./
 COPY README.md ./
 
-# Install the local package properly (must be done as root)
+# Create virtual environment if it doesn't exist (for Coolify compatibility)
+RUN python -m venv /opt/venv || true
+
+# Install the local package in both system and virtual environment
 RUN pip install --no-cache-dir . && \
-    pip list | grep office-word-mcp-server
+    /opt/venv/bin/pip install --no-cache-dir . && \
+    pip list | grep office-word-mcp-server && \
+    /opt/venv/bin/pip list | grep office-word-mcp-server
 
 # Create directories for document storage with proper permissions
 RUN mkdir -p /app/documents /app/temp && \
@@ -74,5 +79,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 EXPOSE 8000
 
 # Run the MCP server with HTTP transport
-# Support both module and direct script execution
-CMD ["sh", "-c", "python -m office_word_mcp_server || python word_mcp_server.py"]
+# Support virtual environment and system Python
+CMD ["sh", "-c", "/opt/venv/bin/python -m office_word_mcp_server || python -m office_word_mcp_server || /opt/venv/bin/python word_mcp_server.py || python word_mcp_server.py"]
