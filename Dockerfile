@@ -18,6 +18,9 @@ COPY requirements.txt pyproject.toml ./
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install the local package in editable mode
+RUN pip install --no-cache-dir -e .
+
 # Production stage
 FROM python:3.11-slim
 
@@ -37,11 +40,16 @@ WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy application code
+# Copy application code and package files
 COPY word_document_server/ ./word_document_server/
 COPY office_word_mcp_server/ ./office_word_mcp_server/
 COPY word_mcp_server.py ./
 COPY __init__.py ./
+COPY pyproject.toml ./
+COPY requirements.txt ./
+
+# Install the local package
+RUN pip install --no-cache-dir -e .
 
 # Create directories for document storage with proper permissions
 RUN mkdir -p /app/documents /app/temp && \
