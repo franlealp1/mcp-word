@@ -18,7 +18,7 @@ The server features a modular architecture that separates concerns into core fun
 
 ### Example
 
-#### Pormpt
+#### Prompt
 
 ![image](https://github.com/user-attachments/assets/f49b0bcc-88b2-4509-bf50-995b9a40038c)
 
@@ -92,7 +92,7 @@ npx -y @smithery/cli install @GongRzhe/Office-Word-MCP-Server --client claude
 - Python 3.8 or higher
 - pip package manager
 
-### Basic Installation
+### Basic Installation (Original mcp, not this one)
 
 ```bash
 # Clone the repository

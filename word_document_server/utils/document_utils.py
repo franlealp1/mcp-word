@@ -482,15 +482,15 @@ def replace_paragraph_block_below_header(
 
 def replace_block_between_manual_anchors(
     doc_path: str,
-    start_anchor_text: str,
+    start_anchor,
     new_paragraphs: list,
-    end_anchor_text: str = None,
-    match_fn=None,
+    end_anchor=None,
     new_paragraph_style: str = None
 ) -> str:
     """
-    Replace all content (paragraphs, tables, etc.) between start_anchor_text and end_anchor_text (or next logical header if not provided).
-    If end_anchor_text is None, deletes until next visually distinct paragraph (bold, all caps, or different font size), or end of document.
+    Replace all content (paragraphs) between start_anchor and end_anchor (exclusive).
+    Anchors can be specified by string (exact paragraph text) or by integer (paragraph index).
+    If end_anchor is None, deletes until the end of the document.
     Inserts new_paragraphs after the start anchor.
     """
     from docx import Document
@@ -498,73 +498,58 @@ def replace_block_between_manual_anchors(
     if not os.path.exists(doc_path):
         return f"Document {doc_path} not found."
     doc = Document(doc_path)
-    body = doc.element.body
-    elements = list(body)
-    start_idx = None
-    end_idx = None
-    # Find start anchor
-    for i, el in enumerate(elements):
-        if el.tag == CT_P.tag:
-            p_text = "".join([node.text or '' for node in el.iter() if node.tag.endswith('}t')]).strip()
-            if match_fn:
-                if match_fn(p_text, el):
-                    start_idx = i
-                    break
-            elif p_text == start_anchor_text.strip():
+
+    # Find start anchor index
+    if isinstance(start_anchor, int):
+        start_idx = start_anchor
+        if start_idx < 0 or start_idx >= len(doc.paragraphs):
+            return f"Invalid start_anchor index: {start_idx}. Document has {len(doc.paragraphs)} paragraphs."
+    else:
+        start_idx = None
+        for i, para in enumerate(doc.paragraphs):
+            if para.text.strip() == str(start_anchor).strip():
                 start_idx = i
                 break
-    if start_idx is None:
-        return f"Start anchor '{start_anchor_text}' not found."
-    # Find end anchor
-    if end_anchor_text:
-        for i in range(start_idx + 1, len(elements)):
-            el = elements[i]
-            if el.tag == CT_P.tag:
-                p_text = "".join([node.text or '' for node in el.iter() if node.tag.endswith('}t')]).strip()
-                if match_fn:
-                    if match_fn(p_text, el, is_end=True):
-                        end_idx = i
-                        break
-                elif p_text == end_anchor_text.strip():
-                    end_idx = i
-                    break
+        if start_idx is None:
+            return f"Start anchor '{start_anchor}' not found."
+
+    # Find end anchor index
+    if end_anchor is None:
+        end_idx = len(doc.paragraphs)
+    elif isinstance(end_anchor, int):
+        end_idx = end_anchor
+        if end_idx < 0 or end_idx > len(doc.paragraphs):
+            return f"Invalid end_anchor index: {end_idx}. Document has {len(doc.paragraphs)} paragraphs."
     else:
-        # Heuristic: next visually distinct paragraph (bold, all caps, or different font size), or end of document
-        for i in range(start_idx + 1, len(elements)):
-            el = elements[i]
-            if el.tag == CT_P.tag:
-                # Check for bold, all caps, or font size
-                runs = [node for node in el.iter() if node.tag.endswith('}r')]
-                for run in runs:
-                    rpr = run.find(qn('w:rPr'))
-                    if rpr is not None:
-                        if rpr.find(qn('w:b')) is not None or rpr.find(qn('w:caps')) is not None or rpr.find(qn('w:sz')) is not None:
-                            end_idx = i
-                            break
-                if end_idx is not None:
-                    break
-    # Mark elements for removal
-    to_remove = []
-    for i in range(start_idx + 1, end_idx if end_idx is not None else len(elements)):
-        to_remove.append(elements[i])
-    for el in to_remove:
-        body.remove(el)
-    doc.save(doc_path)
-    # Reload and find start anchor for insertion
-    doc = Document(doc_path)
-    paras = doc.paragraphs
-    anchor_idx = None
-    for i, para in enumerate(paras):
-        if para.text.strip() == start_anchor_text.strip():
-            anchor_idx = i
-            break
-    if anchor_idx is None:
-        return f"Start anchor '{start_anchor_text}' not found after deletion (unexpected)."
-    anchor_para = paras[anchor_idx]
+        end_idx = None
+        for i in range(start_idx + 1, len(doc.paragraphs)):
+            if doc.paragraphs[i].text.strip() == str(end_anchor).strip():
+                end_idx = i
+                break
+        if end_idx is None:
+            return f"End anchor '{end_anchor}' not found after start anchor."
+
+    # Delete all paragraphs between start_idx and end_idx (exclusive)
+    removed_count = 0
+    for i in range(end_idx - 1, start_idx, -1):
+        p = doc.paragraphs[i]._element
+        p.getparent().remove(p)
+        removed_count += 1
+
+    # Insert new paragraphs after the start anchor
     style_to_use = new_paragraph_style or "Normal"
-    for text in new_paragraphs:
-        new_para = doc.add_paragraph(text, style=style_to_use)
-        anchor_para._element.addnext(new_para._element)
-        anchor_para = new_para
+    anchor_para = doc.paragraphs[start_idx]
+    current_para = anchor_para
+    for para in new_paragraphs:
+        if isinstance(para, dict):
+            text = para.get("text", "")
+            style = para.get("style", style_to_use)
+        else:
+            text = str(para)
+            style = style_to_use
+        new_para = doc.add_paragraph(text, style=style)
+        current_para._element.addnext(new_para._element)
+        current_para = new_para
+
     doc.save(doc_path)
-    return f"Replaced content between '{start_anchor_text}' and '{end_anchor_text or 'next logical header'}' with {len(new_paragraphs)} paragraph(s), style: {style_to_use}, removed {len(to_remove)} elements."
+    return f"Replaced content between anchor {start_anchor} and {end_anchor if end_anchor is not None else 'end of document'} with {len(new_paragraphs)} paragraph(s), removed {removed_count} paragraphs."
