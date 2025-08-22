@@ -17,6 +17,10 @@ from word_document_server.tools import (
     footnote_tools,
     extended_document_tools
 )
+from word_document_server.tools.content_tools import replace_paragraph_block_below_header_tool
+from word_document_server.tools.content_tools import replace_block_between_manual_anchors_tool
+from word_document_server.tools.content_tools import modify_table_cell as modify_table_cell_func
+
 def get_transport_config():
     """
     Get transport configuration from environment variables.
@@ -117,9 +121,21 @@ def register_tools():
         return document_tools.get_document_xml_tool(filename)
     
     @mcp.tool()
-    def insert_header_near_text(filename: str, target_text: str, header_title: str, position: str = 'after', header_style: str = 'Heading 1'):
-        """Insert a header (with specified style) before or after the first paragraph containing target_text. Args: filename (str), target_text (str), header_title (str), position ('before' or 'after'), header_style (str, default 'Heading 1')."""
-        return document_tools.insert_header_near_text_tool(filename, target_text, header_title, position, header_style)
+    def insert_header_near_text(filename: str, target_text: str = None, header_title: str = None, position: str = 'after', header_style: str = 'Heading 1', target_paragraph_index: int = None):
+        """Insert a header (with specified style) before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), header_title (str), position ('before' or 'after'), header_style (str, default 'Heading 1'), target_paragraph_index (int, optional)."""
+        return content_tools.insert_header_near_text_tool(filename, target_text, header_title, position, header_style, target_paragraph_index)
+    
+    @mcp.tool()
+    def insert_line_or_paragraph_near_text(filename: str, target_text: str = None, line_text: str = None, position: str = 'after', line_style: str = None, target_paragraph_index: int = None):
+        """
+        Insert a new line or paragraph (with specified or matched style) before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), line_text (str), position ('before' or 'after'), line_style (str, optional), target_paragraph_index (int, optional).
+        """
+        return content_tools.insert_line_or_paragraph_near_text_tool(filename, target_text, line_text, position, line_style, target_paragraph_index)
+    
+    @mcp.tool()
+    def insert_numbered_list_near_text(filename: str, target_text: str = None, list_items: list = None, position: str = 'after', target_paragraph_index: int = None):
+        """Insert a numbered list before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), list_items (list of str), position ('before' or 'after'), target_paragraph_index (int, optional)."""
+        return content_tools.insert_numbered_list_near_text_tool(filename, target_text, list_items, position, target_paragraph_index)
     # Content tools (paragraphs, headings, tables, etc.)
     @mcp.tool()
     def add_paragraph(filename: str, text: str, style: str = None):
@@ -152,6 +168,11 @@ def register_tools():
         return content_tools.delete_paragraph(filename, paragraph_index)
     
     @mcp.tool()
+    def delete_table(filename: str, table_index: int):
+        """Delete a table from a document."""
+        return content_tools.delete_table(filename, table_index)
+    
+    @mcp.tool()
     def search_and_replace(filename: str, find_text: str, replace_text: str):
         """Search for text and replace all occurrences."""
         return content_tools.search_and_replace(filename, find_text, replace_text)
@@ -171,7 +192,10 @@ def register_tools():
     def format_text(filename: str, paragraph_index: int, start_pos: int, end_pos: int,
                    bold: bool = None, italic: bool = None, underline: bool = None,
                    color: str = None, font_size: int = None, font_name: str = None):
-        """Format a specific range of text within a paragraph."""
+        """Format a specific range of text within a paragraph.
+        
+        IMPORTANT: When specifying the color parameter, use a hex code WITHOUT the leading # (e.g., '0070C0', not '#0070C0').
+        """
         return format_tools.format_text(
             filename, paragraph_index, start_pos, end_pos, bold, italic, 
             underline, color, font_size, font_name
@@ -232,6 +256,27 @@ def register_tools():
     def convert_to_pdf(filename: str, output_filename: str = None):
         """Convert a Word document to PDF format."""
         return extended_document_tools.convert_to_pdf(filename, output_filename)
+
+    @mcp.tool()
+    def replace_paragraph_block_below_header(filename: str, header_text: str, new_paragraphs: list, detect_block_end_fn=None):
+        """Reemplaza el bloque de párrafos debajo de un encabezado, evitando modificar TOC."""
+        return replace_paragraph_block_below_header_tool(filename, header_text, new_paragraphs, detect_block_end_fn)
+
+    @mcp.tool()
+    def replace_block_between_manual_anchors(filename: str, start_anchor_text: str, new_paragraphs: list, end_anchor_text: str = None, new_paragraph_style: str = None):
+        """Replace all content between start_anchor_text and end_anchor_text (or next logical header if not provided)."""
+        return replace_block_between_manual_anchors_tool(
+            filename=filename,
+            start_anchor_text=start_anchor_text,
+            new_paragraphs=new_paragraphs,
+            end_anchor_text=end_anchor_text,
+            new_paragraph_style=new_paragraph_style
+        )
+
+    @mcp.tool()
+    def modify_table_cell(filename: str, table_index: int, row: int, column: int, content: str):
+        """Modify or add content to a specific table cell, following the style of existing non-header cells."""
+        return modify_table_cell_func(filename, table_index, row, column, content)
 
 
 def run_server():
