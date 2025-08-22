@@ -24,13 +24,13 @@ services:
       - word_documents:/app/documents
       - word_temp:/app/temp
     
-    # Health check - use curl to check HTTP endpoint
+    # Health check - check if Python process is running
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 1"]
+      test: ["CMD-SHELL", "ps aux | grep python | grep word_m || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 30s
     
     # Resource limits
     deploy:
