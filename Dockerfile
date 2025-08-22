@@ -44,6 +44,8 @@ COPY word_mcp_server.py ./
 COPY requirements.txt ./
 COPY pyproject.toml ./
 COPY __init__.py ./
+COPY LICENSE ./
+COPY README.md ./
 
 # Install the local package (must be done as root)
 RUN pip install --no-cache-dir -e .

@@ -4,8 +4,8 @@
 .gitattributes
 
 # Documentation
-README.md
 *.md
+!README.md
 !CLAUDE.md
 
 # Python cache and build files
