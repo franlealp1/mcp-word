@@ -1,5 +1,13 @@
 # Office-Word-MCP-Server
 
+This repo is a fork from:
+
+```
+https://github.com/GongRzhe/Office-Word-MCP-Server.git
+```
+
+adapted to be deployed as a microservice.
+
 [![smithery badge](https://smithery.ai/badge/@GongRzhe/Office-Word-MCP-Server)](https://smithery.ai/server/@GongRzhe/Office-Word-MCP-Server)
 
 A Model Context Protocol (MCP) server for creating, reading, and manipulating Microsoft Word documents. This server enables AI assistants to work with Word documents through a standardized interface, providing rich document editing capabilities.
@@ -79,7 +87,14 @@ The server features a modular architecture that separates concerns into core fun
 
 ## Installation
 
-### Installing via Smithery
+
+1. **Clone to your Coolify server**:
+```bash
+git clone https://github.com/franlealp1/mcp-word
+cd Office-Word-MCP-Server
+```
+
+### Installing via Smithery (only original repo, not this one)
 
 To install Office Word Document Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@GongRzhe/Office-Word-MCP-Server):
 
@@ -92,11 +107,11 @@ npx -y @smithery/cli install @GongRzhe/Office-Word-MCP-Server --client claude
 - Python 3.8 or higher
 - pip package manager
 
-### Basic Installation (Original mcp, not this one)
+### Basic Installation (A)
 
-```bash
-# Clone the repository
-git clone https://github.com/GongRzhe/Office-Word-MCP-Server.git
+
+
+
 cd Office-Word-MCP-Server
 
 # Install dependencies

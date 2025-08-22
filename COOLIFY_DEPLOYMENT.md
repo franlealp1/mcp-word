@@ -2,9 +2,9 @@
 
 ## Quick Start
 
-1. **Clone to your Coolify server** (ATENCIÓN: ESTE REPO ES EL ORIGINAL, NO EL MODIFICADO POR SANTIA):
+1. **Clone to your Coolify server**:
    ```bash
-   git clone https://github.com/GongRzhe/Office-Word-MCP-Server.git
+   git clone https://github.com/franlealp1/mcp-word
    cd Office-Word-MCP-Server
    ```
 
