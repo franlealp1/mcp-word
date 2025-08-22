@@ -2,9 +2,6 @@
 [phases.setup]
 nixPkgs = ["libreoffice"]
 
-[phases.install]
-cmds = ["python -m pip install -e ."]
-
 [start]
 cmd = "word_mcp_server"
 
