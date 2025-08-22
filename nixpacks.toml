@@ -1,3 +1,16 @@
-# Force Coolify to use Dockerfile instead of Nixpacks
-[build]
-dockerfile = "Dockerfile"
+# Nixpacks configuration for Word MCP Server
+[phases.setup]
+nixPkgs = ["libreoffice"]
+
+[phases.install]
+cmds = ["pip install -e ."]
+
+[start]
+cmd = "word_mcp_server"
+
+[variables]
+MCP_TRANSPORT = "streamable-http"
+MCP_HOST = "0.0.0.0"
+MCP_PORT = "8000"
+MCP_PATH = "/mcp"
+FASTMCP_LOG_LEVEL = "INFO"

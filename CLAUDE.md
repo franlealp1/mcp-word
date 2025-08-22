@@ -45,14 +45,17 @@ pip install office-word-mcp-server
 
 ### Running the Server
 ```bash
-# Default stdio transport
-python word_mcp_server.py
+# Using the installed entry point
+word_mcp_server
+
+# Or as a Python module
+python -m office_word_mcp_server
 
 # With specific transport (set environment variables)
 export MCP_TRANSPORT=streamable-http
 export MCP_HOST=127.0.0.1
 export MCP_PORT=8000
-python word_mcp_server.py
+word_mcp_server
 ```
 
 ### Testing

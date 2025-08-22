@@ -10,20 +10,23 @@
 
 2. **Deploy with Coolify**:
    - Create new service in Coolify
-   - Select "Docker Compose" deployment
+   - Select "Nixpacks" build pack
    - Point to this repository
-   - Use the included `docker-compose.yml`
+   - Coolify will use the `nixpacks.toml` configuration
 
 ## Service Configuration
 
 ### Coolify Settings
-- **Service Type**: Docker Compose
+- **Build Pack**: Nixpacks
 - **Port**: 8000
 - **Health Check Path**: `/mcp`
 - **Domain**: `word-mcp.yourdomain.com` (optional)
 
 ### Environment Variables
+Environment variables are pre-configured in `nixpacks.toml`. No additional configuration needed in Coolify.
+
 ```bash
+# Automatically set by nixpacks.toml:
 MCP_TRANSPORT=streamable-http
 MCP_HOST=0.0.0.0
 MCP_PORT=8000
