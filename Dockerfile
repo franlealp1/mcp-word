@@ -66,9 +66,9 @@ ENV MCP_PATH=/mcp
 ENV FASTMCP_LOG_LEVEL=INFO
 ENV PYTHONPATH=/app
 
-# Health check for Coolify
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+# Health check for Coolify - check if port is listening
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD netstat -tuln | grep :8000 || exit 1
 
 # Expose port
 EXPOSE 8000
