@@ -47,8 +47,9 @@ COPY __init__.py ./
 COPY LICENSE ./
 COPY README.md ./
 
-# Install the local package (must be done as root)
-RUN pip install --no-cache-dir -e .
+# Install the local package properly (must be done as root)
+RUN pip install --no-cache-dir . && \
+    pip list | grep office-word-mcp-server
 
 # Create directories for document storage with proper permissions
 RUN mkdir -p /app/documents /app/temp && \
@@ -73,4 +74,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 EXPOSE 8000
 
 # Run the MCP server with HTTP transport
-CMD ["python", "word_mcp_server.py"]
+# Support both module and direct script execution
+CMD ["sh", "-c", "python -m office_word_mcp_server || python word_mcp_server.py"]
