@@ -20,6 +20,7 @@ from word_document_server.tools import (
 from word_document_server.tools.content_tools import replace_paragraph_block_below_header_tool
 from word_document_server.tools.content_tools import replace_block_between_manual_anchors_tool
 from word_document_server.tools.content_tools import modify_table_cell as modify_table_cell_func
+from typing import Optional, List
 
 def get_transport_config():
     """
@@ -86,12 +87,12 @@ def register_tools():
     
     # Document tools (create, copy, info, etc.)
     @mcp.tool()
-    async def create_document(filename: str, title: str = None, author: str = None):
+    async def create_document(filename: str, title: Optional[str] = None, author: Optional[str] = None):
         """Create a new Word document with optional metadata."""
         return await document_tools.create_document(filename, title, author)
     
     @mcp.tool()
-    async def copy_document(source_filename: str, destination_filename: str = None):
+    async def copy_document(source_filename: str, destination_filename: Optional[str] = None):
         """Create a copy of a Word document."""
         return await document_tools.copy_document(source_filename, destination_filename)
     
@@ -121,24 +122,24 @@ def register_tools():
         return await document_tools.get_document_xml_tool(filename)
     
     @mcp.tool()
-    async def insert_header_near_text(filename: str, target_text: str = None, header_title: str = None, position: str = 'after', header_style: str = 'Heading 1', target_paragraph_index: int = None):
+    async def insert_header_near_text(filename: str, target_text: Optional[str] = None, header_title: Optional[str] = None, position: str = 'after', header_style: str = 'Heading 1', target_paragraph_index: Optional[int] = None):
         """Insert a header (with specified style) before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), header_title (str), position ('before' or 'after'), header_style (str, default 'Heading 1'), target_paragraph_index (int, optional)."""
         return await content_tools.insert_header_near_text_tool(filename, target_text, header_title, position, header_style, target_paragraph_index)
     
     @mcp.tool()
-    async def insert_line_or_paragraph_near_text(filename: str, target_text: str = None, line_text: str = None, position: str = 'after', line_style: str = None, target_paragraph_index: int = None):
+    async def insert_line_or_paragraph_near_text(filename: str, target_text: Optional[str] = None, line_text: Optional[str] = None, position: str = 'after', line_style: Optional[str] = None, target_paragraph_index: Optional[int] = None):
         """
         Insert a new line or paragraph (with specified or matched style) before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), line_text (str), position ('before' or 'after'), line_style (str, optional), target_paragraph_index (int, optional).
         """
         return await content_tools.insert_line_or_paragraph_near_text_tool(filename, target_text, line_text, position, line_style, target_paragraph_index)
     
     @mcp.tool()
-    async def insert_numbered_list_near_text(filename: str, target_text: str = None, list_items: list[str] = None, position: str = 'after', target_paragraph_index: int = None):
+    async def insert_numbered_list_near_text(filename: str, target_text: Optional[str] = None, list_items: Optional[List[str]] = None, position: str = 'after', target_paragraph_index: Optional[int] = None):
         """Insert a numbered list before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), list_items (list of str), position ('before' or 'after'), target_paragraph_index (int, optional)."""
         return await content_tools.insert_numbered_list_near_text_tool(filename, target_text, list_items, position, target_paragraph_index)
     # Content tools (paragraphs, headings, tables, etc.)
     @mcp.tool()
-    async def add_paragraph(filename: str, text: str, style: str = None):
+    async def add_paragraph(filename: str, text: str, style: Optional[str] = None):
         """Add a paragraph to a Word document."""
         return await content_tools.add_paragraph(filename, text, style)
     
@@ -148,12 +149,12 @@ def register_tools():
         return await content_tools.add_heading(filename, text, level)
     
     @mcp.tool()
-    async def add_picture(filename: str, image_path: str, width: float = None):
+    async def add_picture(filename: str, image_path: str, width: Optional[float] = None):
         """Add an image to a Word document."""
         return await content_tools.add_picture(filename, image_path, width)
     
     @mcp.tool()
-    async def add_table(filename: str, rows: int, cols: int, data: list[list[str]] = None):
+    async def add_table(filename: str, rows: int, cols: int, data: Optional[List[List[str]]] = None):
         """Add a table to a Word document."""
         return await content_tools.add_table(filename, rows, cols, data)
     
@@ -179,10 +180,10 @@ def register_tools():
     
     # Format tools (styling, text formatting, etc.)
     @mcp.tool()
-    async def create_custom_style(filename: str, style_name: str, bold: bool = None, 
-                          italic: bool = None, font_size: int = None, 
-                          font_name: str = None, color: str = None, 
-                          base_style: str = None):
+    async def create_custom_style(filename: str, style_name: str, bold: Optional[bool] = None, 
+                          italic: Optional[bool] = None, font_size: Optional[int] = None, 
+                          font_name: Optional[str] = None, color: Optional[str] = None, 
+                          base_style: Optional[str] = None):
         """Create a custom style in the document."""
         return await format_tools.create_custom_style(
             filename, style_name, bold, italic, font_size, font_name, color, base_style
@@ -190,8 +191,8 @@ def register_tools():
     
     @mcp.tool()
     async def format_text(filename: str, paragraph_index: int, start_pos: int, end_pos: int,
-                   bold: bool = None, italic: bool = None, underline: bool = None,
-                   color: str = None, font_size: int = None, font_name: str = None):
+                   bold: Optional[bool] = None, italic: Optional[bool] = None, underline: Optional[bool] = None,
+                   color: Optional[str] = None, font_size: Optional[int] = None, font_name: Optional[str] = None):
         """Format a specific range of text within a paragraph.
         
         IMPORTANT: When specifying the color parameter, use a hex code WITHOUT the leading # (e.g., '0070C0', not '#0070C0').
@@ -202,8 +203,8 @@ def register_tools():
         )
     
     @mcp.tool()
-    async def format_table(filename: str, table_index: int, has_header_row: bool = None,
-                    border_style: str = None, shading: list[str] = None):
+    async def format_table(filename: str, table_index: int, has_header_row: Optional[bool] = None,
+                    border_style: Optional[str] = None, shading: Optional[List[str]] = None):
         """Format a table with borders, shading, and structure."""
         return await format_tools.format_table(filename, table_index, has_header_row, border_style, shading)
     
@@ -231,8 +232,8 @@ def register_tools():
     
     @mcp.tool()
     async def customize_footnote_style(filename: str, numbering_format: str = "1, 2, 3",
-                                start_number: int = 1, font_name: str = None,
-                                font_size: int = None):
+                                start_number: int = 1, font_name: Optional[str] = None,
+                                font_size: Optional[int] = None):
         """Customize footnote numbering and formatting in a Word document."""
         return await footnote_tools.customize_footnote_style(
             filename, numbering_format, start_number, font_name, font_size
@@ -253,17 +254,17 @@ def register_tools():
         )
     
     @mcp.tool()
-    async def convert_to_pdf(filename: str, output_filename: str = None):
+    async def convert_to_pdf(filename: str, output_filename: Optional[str] = None):
         """Convert a Word document to PDF format."""
         return await extended_document_tools.convert_to_pdf(filename, output_filename)
 
     @mcp.tool()
-    async def replace_paragraph_block_below_header(filename: str, header_text: str, new_paragraphs: list[str], detect_block_end_fn=None):
+    async def replace_paragraph_block_below_header(filename: str, header_text: str, new_paragraphs: List[str], detect_block_end_fn=None):
         """Reemplaza el bloque de párrafos debajo de un encabezado, evitando modificar TOC."""
         return await replace_paragraph_block_below_header_tool(filename, header_text, new_paragraphs, detect_block_end_fn)
 
     @mcp.tool()
-    async def replace_block_between_manual_anchors(filename: str, start_anchor_text: str, new_paragraphs: list[str], end_anchor_text: str = None, new_paragraph_style: str = None):
+    async def replace_block_between_manual_anchors(filename: str, start_anchor_text: str, new_paragraphs: List[str], end_anchor_text: Optional[str] = None, new_paragraph_style: Optional[str] = None):
         """Replace all content between start_anchor_text and end_anchor_text (or next logical header if not provided)."""
         return await replace_block_between_manual_anchors_tool(
             filename=filename,
