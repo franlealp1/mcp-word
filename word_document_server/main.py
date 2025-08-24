@@ -86,186 +86,186 @@ def register_tools():
     
     # Document tools (create, copy, info, etc.)
     @mcp.tool()
-    def create_document(filename: str, title: str = None, author: str = None):
+    async def create_document(filename: str, title: str = None, author: str = None):
         """Create a new Word document with optional metadata."""
-        return document_tools.create_document(filename, title, author)
+        return await document_tools.create_document(filename, title, author)
     
     @mcp.tool()
-    def copy_document(source_filename: str, destination_filename: str = None):
+    async def copy_document(source_filename: str, destination_filename: str = None):
         """Create a copy of a Word document."""
-        return document_tools.copy_document(source_filename, destination_filename)
+        return await document_tools.copy_document(source_filename, destination_filename)
     
     @mcp.tool()
-    def get_document_info(filename: str):
+    async def get_document_info(filename: str):
         """Get information about a Word document."""
-        return document_tools.get_document_info(filename)
+        return await document_tools.get_document_info(filename)
     
     @mcp.tool()
-    def get_document_text(filename: str):
+    async def get_document_text(filename: str):
         """Extract all text from a Word document."""
-        return document_tools.get_document_text(filename)
+        return await document_tools.get_document_text(filename)
     
     @mcp.tool()
-    def get_document_outline(filename: str):
+    async def get_document_outline(filename: str):
         """Get the structure of a Word document."""
-        return document_tools.get_document_outline(filename)
+        return await document_tools.get_document_outline(filename)
     
     @mcp.tool()
-    def list_available_documents(directory: str = "."):
+    async def list_available_documents(directory: str = "."):
         """List all .docx files in the specified directory."""
-        return document_tools.list_available_documents(directory)
+        return await document_tools.list_available_documents(directory)
     
     @mcp.tool()
-    def get_document_xml(filename: str):
+    async def get_document_xml(filename: str):
         """Get the raw XML structure of a Word document."""
-        return document_tools.get_document_xml_tool(filename)
+        return await document_tools.get_document_xml_tool(filename)
     
     @mcp.tool()
-    def insert_header_near_text(filename: str, target_text: str = None, header_title: str = None, position: str = 'after', header_style: str = 'Heading 1', target_paragraph_index: int = None):
+    async def insert_header_near_text(filename: str, target_text: str = None, header_title: str = None, position: str = 'after', header_style: str = 'Heading 1', target_paragraph_index: int = None):
         """Insert a header (with specified style) before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), header_title (str), position ('before' or 'after'), header_style (str, default 'Heading 1'), target_paragraph_index (int, optional)."""
-        return content_tools.insert_header_near_text_tool(filename, target_text, header_title, position, header_style, target_paragraph_index)
+        return await content_tools.insert_header_near_text_tool(filename, target_text, header_title, position, header_style, target_paragraph_index)
     
     @mcp.tool()
-    def insert_line_or_paragraph_near_text(filename: str, target_text: str = None, line_text: str = None, position: str = 'after', line_style: str = None, target_paragraph_index: int = None):
+    async def insert_line_or_paragraph_near_text(filename: str, target_text: str = None, line_text: str = None, position: str = 'after', line_style: str = None, target_paragraph_index: int = None):
         """
         Insert a new line or paragraph (with specified or matched style) before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), line_text (str), position ('before' or 'after'), line_style (str, optional), target_paragraph_index (int, optional).
         """
-        return content_tools.insert_line_or_paragraph_near_text_tool(filename, target_text, line_text, position, line_style, target_paragraph_index)
+        return await content_tools.insert_line_or_paragraph_near_text_tool(filename, target_text, line_text, position, line_style, target_paragraph_index)
     
     @mcp.tool()
-    def insert_numbered_list_near_text(filename: str, target_text: str = None, list_items: list[str] = None, position: str = 'after', target_paragraph_index: int = None):
+    async def insert_numbered_list_near_text(filename: str, target_text: str = None, list_items: list[str] = None, position: str = 'after', target_paragraph_index: int = None):
         """Insert a numbered list before or after the target paragraph. Specify by text or paragraph index. Args: filename (str), target_text (str, optional), list_items (list of str), position ('before' or 'after'), target_paragraph_index (int, optional)."""
-        return content_tools.insert_numbered_list_near_text_tool(filename, target_text, list_items, position, target_paragraph_index)
+        return await content_tools.insert_numbered_list_near_text_tool(filename, target_text, list_items, position, target_paragraph_index)
     # Content tools (paragraphs, headings, tables, etc.)
     @mcp.tool()
-    def add_paragraph(filename: str, text: str, style: str = None):
+    async def add_paragraph(filename: str, text: str, style: str = None):
         """Add a paragraph to a Word document."""
-        return content_tools.add_paragraph(filename, text, style)
+        return await content_tools.add_paragraph(filename, text, style)
     
     @mcp.tool()
-    def add_heading(filename: str, text: str, level: int = 1):
+    async def add_heading(filename: str, text: str, level: int = 1):
         """Add a heading to a Word document."""
-        return content_tools.add_heading(filename, text, level)
+        return await content_tools.add_heading(filename, text, level)
     
     @mcp.tool()
-    def add_picture(filename: str, image_path: str, width: float = None):
+    async def add_picture(filename: str, image_path: str, width: float = None):
         """Add an image to a Word document."""
-        return content_tools.add_picture(filename, image_path, width)
+        return await content_tools.add_picture(filename, image_path, width)
     
     @mcp.tool()
-    def add_table(filename: str, rows: int, cols: int, data: list[list[str]] = None):
+    async def add_table(filename: str, rows: int, cols: int, data: list[list[str]] = None):
         """Add a table to a Word document."""
-        return content_tools.add_table(filename, rows, cols, data)
+        return await content_tools.add_table(filename, rows, cols, data)
     
     @mcp.tool()
-    def add_page_break(filename: str):
+    async def add_page_break(filename: str):
         """Add a page break to the document."""
-        return content_tools.add_page_break(filename)
+        return await content_tools.add_page_break(filename)
     
     @mcp.tool()
-    def delete_paragraph(filename: str, paragraph_index: int):
+    async def delete_paragraph(filename: str, paragraph_index: int):
         """Delete a paragraph from a document."""
-        return content_tools.delete_paragraph(filename, paragraph_index)
+        return await content_tools.delete_paragraph(filename, paragraph_index)
     
     @mcp.tool()
-    def delete_table(filename: str, table_index: int):
+    async def delete_table(filename: str, table_index: int):
         """Delete a table from a document."""
-        return content_tools.delete_table(filename, table_index)
+        return await content_tools.delete_table(filename, table_index)
     
     @mcp.tool()
-    def search_and_replace(filename: str, find_text: str, replace_text: str):
+    async def search_and_replace(filename: str, find_text: str, replace_text: str):
         """Search for text and replace all occurrences."""
-        return content_tools.search_and_replace(filename, find_text, replace_text)
+        return await content_tools.search_and_replace(filename, find_text, replace_text)
     
     # Format tools (styling, text formatting, etc.)
     @mcp.tool()
-    def create_custom_style(filename: str, style_name: str, bold: bool = None, 
+    async def create_custom_style(filename: str, style_name: str, bold: bool = None, 
                           italic: bool = None, font_size: int = None, 
                           font_name: str = None, color: str = None, 
                           base_style: str = None):
         """Create a custom style in the document."""
-        return format_tools.create_custom_style(
+        return await format_tools.create_custom_style(
             filename, style_name, bold, italic, font_size, font_name, color, base_style
         )
     
     @mcp.tool()
-    def format_text(filename: str, paragraph_index: int, start_pos: int, end_pos: int,
+    async def format_text(filename: str, paragraph_index: int, start_pos: int, end_pos: int,
                    bold: bool = None, italic: bool = None, underline: bool = None,
                    color: str = None, font_size: int = None, font_name: str = None):
         """Format a specific range of text within a paragraph.
         
         IMPORTANT: When specifying the color parameter, use a hex code WITHOUT the leading # (e.g., '0070C0', not '#0070C0').
         """
-        return format_tools.format_text(
+        return await format_tools.format_text(
             filename, paragraph_index, start_pos, end_pos, bold, italic, 
             underline, color, font_size, font_name
         )
     
     @mcp.tool()
-    def format_table(filename: str, table_index: int, has_header_row: bool = None,
+    async def format_table(filename: str, table_index: int, has_header_row: bool = None,
                     border_style: str = None, shading: list[str] = None):
         """Format a table with borders, shading, and structure."""
-        return format_tools.format_table(filename, table_index, has_header_row, border_style, shading)
+        return await format_tools.format_table(filename, table_index, has_header_row, border_style, shading)
     
     # Protection tools
     @mcp.tool()
-    def protect_document(filename: str, password: str):
+    async def protect_document(filename: str, password: str):
         """Add password protection to a Word document."""
-        return protection_tools.protect_document(filename, password)
+        return await protection_tools.protect_document(filename, password)
     
     @mcp.tool()
-    def unprotect_document(filename: str, password: str):
+    async def unprotect_document(filename: str, password: str):
         """Remove password protection from a Word document."""
-        return protection_tools.unprotect_document(filename, password)
+        return await protection_tools.unprotect_document(filename, password)
     
     # Footnote tools
     @mcp.tool()
-    def add_footnote_to_document(filename: str, paragraph_index: int, footnote_text: str):
+    async def add_footnote_to_document(filename: str, paragraph_index: int, footnote_text: str):
         """Add a footnote to a specific paragraph in a Word document."""
-        return footnote_tools.add_footnote_to_document(filename, paragraph_index, footnote_text)
+        return await footnote_tools.add_footnote_to_document(filename, paragraph_index, footnote_text)
     
     @mcp.tool()
-    def add_endnote_to_document(filename: str, paragraph_index: int, endnote_text: str):
+    async def add_endnote_to_document(filename: str, paragraph_index: int, endnote_text: str):
         """Add an endnote to a specific paragraph in a Word document."""
-        return footnote_tools.add_endnote_to_document(filename, paragraph_index, endnote_text)
+        return await footnote_tools.add_endnote_to_document(filename, paragraph_index, endnote_text)
     
     @mcp.tool()
-    def customize_footnote_style(filename: str, numbering_format: str = "1, 2, 3",
+    async def customize_footnote_style(filename: str, numbering_format: str = "1, 2, 3",
                                 start_number: int = 1, font_name: str = None,
                                 font_size: int = None):
         """Customize footnote numbering and formatting in a Word document."""
-        return footnote_tools.customize_footnote_style(
+        return await footnote_tools.customize_footnote_style(
             filename, numbering_format, start_number, font_name, font_size
         )
     
     # Extended document tools
     @mcp.tool()
-    def get_paragraph_text_from_document(filename: str, paragraph_index: int):
+    async def get_paragraph_text_from_document(filename: str, paragraph_index: int):
         """Get text from a specific paragraph in a Word document."""
-        return extended_document_tools.get_paragraph_text_from_document(filename, paragraph_index)
+        return await extended_document_tools.get_paragraph_text_from_document(filename, paragraph_index)
     
     @mcp.tool()
-    def find_text_in_document(filename: str, text_to_find: str, match_case: bool = True,
+    async def find_text_in_document(filename: str, text_to_find: str, match_case: bool = True,
                              whole_word: bool = False):
         """Find occurrences of specific text in a Word document."""
-        return extended_document_tools.find_text_in_document(
+        return await extended_document_tools.find_text_in_document(
             filename, text_to_find, match_case, whole_word
         )
     
     @mcp.tool()
-    def convert_to_pdf(filename: str, output_filename: str = None):
+    async def convert_to_pdf(filename: str, output_filename: str = None):
         """Convert a Word document to PDF format."""
-        return extended_document_tools.convert_to_pdf(filename, output_filename)
+        return await extended_document_tools.convert_to_pdf(filename, output_filename)
 
     @mcp.tool()
-    def replace_paragraph_block_below_header(filename: str, header_text: str, new_paragraphs: list[str], detect_block_end_fn=None):
+    async def replace_paragraph_block_below_header(filename: str, header_text: str, new_paragraphs: list[str], detect_block_end_fn=None):
         """Reemplaza el bloque de párrafos debajo de un encabezado, evitando modificar TOC."""
-        return replace_paragraph_block_below_header_tool(filename, header_text, new_paragraphs, detect_block_end_fn)
+        return await replace_paragraph_block_below_header_tool(filename, header_text, new_paragraphs, detect_block_end_fn)
 
     @mcp.tool()
-    def replace_block_between_manual_anchors(filename: str, start_anchor_text: str, new_paragraphs: list[str], end_anchor_text: str = None, new_paragraph_style: str = None):
+    async def replace_block_between_manual_anchors(filename: str, start_anchor_text: str, new_paragraphs: list[str], end_anchor_text: str = None, new_paragraph_style: str = None):
         """Replace all content between start_anchor_text and end_anchor_text (or next logical header if not provided)."""
-        return replace_block_between_manual_anchors_tool(
+        return await replace_block_between_manual_anchors_tool(
             filename=filename,
             start_anchor_text=start_anchor_text,
             new_paragraphs=new_paragraphs,
@@ -274,9 +274,9 @@ def register_tools():
         )
 
     @mcp.tool()
-    def modify_table_cell(filename: str, table_index: int, row: int, column: int, content: str):
+    async def modify_table_cell(filename: str, table_index: int, row: int, column: int, content: str):
         """Modify or add content to a specific table cell, following the style of existing non-header cells."""
-        return modify_table_cell_func(filename, table_index, row, column, content)
+        return await modify_table_cell_func(filename, table_index, row, column, content)
 
 
 def run_server():
