@@ -435,7 +435,7 @@ def delete_block_under_header(doc, header_text):
 def replace_paragraph_block_below_header(
     doc_path: str,
     header_text: str,
-    new_paragraphs: list,
+    new_paragraphs: list[str],
     detect_block_end_fn=None,
     new_paragraph_style: str = None
 ) -> str:
@@ -483,7 +483,7 @@ def replace_paragraph_block_below_header(
 def replace_block_between_manual_anchors(
     doc_path: str,
     start_anchor,
-    new_paragraphs: list,
+    new_paragraphs: list[str],
     end_anchor=None,
     new_paragraph_style: str = None
 ) -> str:

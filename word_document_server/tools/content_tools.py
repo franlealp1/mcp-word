@@ -446,11 +446,11 @@ async def insert_line_or_paragraph_near_text_tool(filename: str, target_text: st
     """Insert a new line or paragraph (with specified or matched style) before or after the target paragraph. Specify by text or paragraph index."""
     return insert_line_or_paragraph_near_text(filename, target_text, line_text, position, line_style, target_paragraph_index)
 
-async def replace_paragraph_block_below_header_tool(filename: str, header_text: str, new_paragraphs: list, detect_block_end_fn=None) -> str:
+async def replace_paragraph_block_below_header_tool(filename: str, header_text: str, new_paragraphs: list[str], detect_block_end_fn=None) -> str:
     """Reemplaza el bloque de párrafos debajo de un encabezado, evitando modificar TOC."""
     return replace_paragraph_block_below_header(filename, header_text, new_paragraphs, detect_block_end_fn)
 
-async def replace_block_between_manual_anchors_tool(filename: str, start_anchor_text: str, new_paragraphs: list, end_anchor_text: str = None, new_paragraph_style: str = None) -> str:
+async def replace_block_between_manual_anchors_tool(filename: str, start_anchor_text: str, new_paragraphs: list[str], end_anchor_text: str = None, new_paragraph_style: str = None) -> str:
     """Replace all content between start_anchor_text and end_anchor_text (or next logical header if not provided)."""
     return replace_block_between_manual_anchors(
         doc_path=filename,

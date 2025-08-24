@@ -112,6 +112,9 @@ FASTMCP_LOG_LEVEL=INFO
 }
 ```
 
+
+curl -X POST http://localhost:8000/mcp -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream"  -d '{"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
+
 ## Networking
 
 ### Internal Network (Recommended)
