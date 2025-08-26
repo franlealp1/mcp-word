@@ -6,9 +6,19 @@ Supports multiple transports: stdio, sse, and streamable-http using standalone F
 
 import os
 import sys
+import uuid
+import sqlite3
+import json
+import atexit
+import threading
+import time
+from datetime import datetime, timedelta
+from pathlib import Path
 # Set required environment variable for FastMCP 2.8.1+
 os.environ.setdefault('FASTMCP_LOG_LEVEL', 'INFO')
 from fastmcp import FastMCP
+from fastapi import Request
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from word_document_server.tools import (
     document_tools,
     content_tools,
@@ -56,6 +66,131 @@ def get_transport_config():
     return config
 
 
+# Temporary file management
+TEMP_FILES_DIR = Path("/tmp/mcp_files")
+DB_FILE = TEMP_FILES_DIR / "file_registry.db"
+
+def init_temp_storage():
+    """Initialize temporary file storage and database."""
+    TEMP_FILES_DIR.mkdir(exist_ok=True)
+    
+    conn = sqlite3.connect(DB_FILE)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS temp_files (
+            file_id TEXT PRIMARY KEY,
+            original_filename TEXT NOT NULL,
+            file_path TEXT NOT NULL,
+            created_at DATETIME NOT NULL,
+            expires_at DATETIME NOT NULL,
+            download_count INTEGER DEFAULT 0
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def register_temp_file(file_path: str, original_filename: str, cleanup_hours: int = 24) -> str:
+    """Register a temporary file for cleanup and return its public ID."""
+    file_id = str(uuid.uuid4())
+    created_at = datetime.now()
+    expires_at = created_at + timedelta(hours=cleanup_hours)
+    
+    conn = sqlite3.connect(DB_FILE)
+    conn.execute("""
+        INSERT INTO temp_files (file_id, original_filename, file_path, created_at, expires_at)
+        VALUES (?, ?, ?, ?, ?)
+    """, (file_id, original_filename, file_path, created_at.isoformat(), expires_at.isoformat()))
+    conn.commit()
+    conn.close()
+    
+    return file_id
+
+def get_temp_file_info(file_id: str) -> Optional[dict]:
+    """Get temporary file info by ID."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.execute("""
+        SELECT file_id, original_filename, file_path, created_at, expires_at, download_count
+        FROM temp_files WHERE file_id = ?
+    """, (file_id,))
+    
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        return None
+        
+    return {
+        "file_id": row[0],
+        "original_filename": row[1], 
+        "file_path": row[2],
+        "created_at": row[3],
+        "expires_at": row[4],
+        "download_count": row[5]
+    }
+
+def increment_download_count(file_id: str):
+    """Increment download count for a file."""
+    conn = sqlite3.connect(DB_FILE)
+    conn.execute("UPDATE temp_files SET download_count = download_count + 1 WHERE file_id = ?", (file_id,))
+    conn.commit()
+    conn.close()
+
+def cleanup_expired_files():
+    """Remove expired files from filesystem and database."""
+    now = datetime.now().isoformat()
+    
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.execute("SELECT file_path FROM temp_files WHERE expires_at < ?", (now,))
+    
+    expired_files = cursor.fetchall()
+    for (file_path,) in expired_files:
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"Error removing expired file {file_path}: {e}")
+    
+    conn.execute("DELETE FROM temp_files WHERE expires_at < ?", (now,))
+    conn.commit()
+    conn.close()
+
+
+# Background cleanup scheduler
+cleanup_thread = None
+cleanup_stop_event = threading.Event()
+
+def background_cleanup_worker():
+    """Background worker that runs cleanup every hour."""
+    while not cleanup_stop_event.is_set():
+        try:
+            cleanup_expired_files()
+            print(f"Background cleanup completed at {datetime.now()}")
+        except Exception as e:
+            print(f"Background cleanup failed: {e}")
+        
+        # Wait for 1 hour or until stop event is set
+        cleanup_stop_event.wait(3600)  # 3600 seconds = 1 hour
+
+def start_background_cleanup():
+    """Start the background cleanup thread."""
+    global cleanup_thread
+    if cleanup_thread is None or not cleanup_thread.is_alive():
+        cleanup_stop_event.clear()
+        cleanup_thread = threading.Thread(target=background_cleanup_worker, daemon=True)
+        cleanup_thread.start()
+        print("Background cleanup scheduler started (runs every hour)")
+
+def stop_background_cleanup():
+    """Stop the background cleanup thread."""
+    global cleanup_thread
+    if cleanup_thread and cleanup_thread.is_alive():
+        cleanup_stop_event.set()
+        cleanup_thread.join(timeout=5)  # Wait up to 5 seconds
+        print("Background cleanup scheduler stopped")
+
+# Register cleanup stop on exit
+atexit.register(stop_background_cleanup)
+
+
 def setup_logging(debug_mode):
     """
     Setup logging based on debug mode.
@@ -81,6 +216,86 @@ def setup_logging(debug_mode):
 # Initialize FastMCP server
 mcp = FastMCP("Word Document Server")
 
+# Add HTTP endpoints for file serving
+@mcp.custom_route("/files/{file_id}", methods=["GET"])
+async def serve_file(request: Request) -> FileResponse:
+    """Serve a temporary file by its ID."""
+    file_id = request.path_params["file_id"]
+    
+    # Cleanup expired files first
+    cleanup_expired_files()
+    
+    # Get file info
+    file_info = get_temp_file_info(file_id)
+    if not file_info:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "File not found or expired"}
+        )
+    
+    # Check if file still exists on disk
+    if not os.path.exists(file_info["file_path"]):
+        return JSONResponse(
+            status_code=404,
+            content={"error": "File no longer exists"}
+        )
+    
+    # Check if file has expired
+    expires_at = datetime.fromisoformat(file_info["expires_at"])
+    if datetime.now() > expires_at:
+        return JSONResponse(
+            status_code=410,
+            content={"error": "File has expired"}
+        )
+    
+    # Increment download count
+    increment_download_count(file_id)
+    
+    # Serve the file
+    return FileResponse(
+        path=file_info["file_path"],
+        filename=file_info["original_filename"],
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+
+@mcp.custom_route("/files/{file_id}/info", methods=["GET"])
+async def get_file_info(request: Request) -> JSONResponse:
+    """Get information about a temporary file."""
+    file_id = request.path_params["file_id"]
+    
+    cleanup_expired_files()
+    
+    file_info = get_temp_file_info(file_id)
+    if not file_info:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "File not found or expired"}
+        )
+    
+    # Don't expose the full file path for security
+    public_info = {
+        "file_id": file_info["file_id"],
+        "original_filename": file_info["original_filename"],
+        "created_at": file_info["created_at"],
+        "expires_at": file_info["expires_at"],
+        "download_count": file_info["download_count"],
+        "file_exists": os.path.exists(file_info["file_path"])
+    }
+    
+    return JSONResponse(content=public_info)
+
+@mcp.custom_route("/cleanup", methods=["POST"])
+async def manual_cleanup(request: Request) -> JSONResponse:
+    """Manually trigger cleanup of expired files."""
+    try:
+        cleanup_expired_files()
+        return JSONResponse(content={"message": "Cleanup completed successfully"})
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Cleanup failed: {str(e)}"}
+        )
+
 
 def register_tools():
     """Register all tools with the MCP server using FastMCP decorators."""
@@ -90,6 +305,89 @@ def register_tools():
     async def create_document(filename: str, title: Optional[str] = None, author: Optional[str] = None):
         """Create a new Word document with optional metadata."""
         return await document_tools.create_document(filename, title, author)
+    
+    @mcp.tool()
+    async def create_document_with_download_link(
+        filename: str, 
+        cleanup_hours: int = 24,
+        title: Optional[str] = None, 
+        author: Optional[str] = None
+    ) -> dict:
+        """Create a new Word document in temporary storage and return a public download link.
+        
+        Args:
+            filename: Name of the document to create (with or without .docx extension)
+            cleanup_hours: Hours after which the file will be automatically deleted (default: 24)
+            title: Optional title for the document metadata
+            author: Optional author for the document metadata
+            
+        Returns:
+            Dictionary with document creation status and download information
+        """
+        from word_document_server.utils.file_utils import ensure_docx_extension
+        
+        # Ensure temp storage is initialized
+        init_temp_storage()
+        
+        # Generate unique filename in temp directory
+        original_filename = ensure_docx_extension(filename)
+        unique_filename = f"{uuid.uuid4()}_{original_filename}"
+        temp_file_path = TEMP_FILES_DIR / unique_filename
+        
+        try:
+            # Create the document using existing logic but in temp location
+            from docx import Document
+            from word_document_server.core.styles import ensure_heading_style, ensure_table_style
+            
+            doc = Document()
+            
+            # Set properties if provided
+            if title:
+                doc.core_properties.title = title
+            if author:
+                doc.core_properties.author = author
+            
+            # Ensure necessary styles exist
+            ensure_heading_style(doc)
+            ensure_table_style(doc)
+            
+            # Save to temp location
+            doc.save(str(temp_file_path))
+            
+            # Register the file for cleanup
+            file_id = register_temp_file(str(temp_file_path), original_filename, cleanup_hours)
+            
+            # Get the public URL (we need to determine the base URL dynamically)
+            config = get_transport_config()
+            base_url = f"http://{config['host']}:{config['port']}"
+            download_url = f"{base_url}/files/{file_id}"
+            
+            expires_at = datetime.now() + timedelta(hours=cleanup_hours)
+            
+            return {
+                "success": True,
+                "message": f"Document {original_filename} created successfully",
+                "download_url": download_url,
+                "file_id": file_id,
+                "original_filename": original_filename,
+                "expires_at": expires_at.isoformat(),
+                "cleanup_hours": cleanup_hours
+            }
+            
+        except Exception as e:
+            # Clean up the file if it was created but registration failed
+            if temp_file_path.exists():
+                temp_file_path.unlink()
+            
+            return {
+                "success": False,
+                "message": f"Failed to create document: {str(e)}",
+                "download_url": None,
+                "file_id": None,
+                "original_filename": original_filename,
+                "expires_at": None,
+                "cleanup_hours": cleanup_hours
+            }
     
     @mcp.tool()
     async def copy_document(source_filename: str, destination_filename: Optional[str] = None):
@@ -290,6 +588,13 @@ def run_server():
     
     # Register all tools
     register_tools()
+    
+    # Initialize temporary file storage
+    init_temp_storage()
+    print("Temporary file storage initialized")
+    
+    # Start background cleanup scheduler
+    start_background_cleanup()
     
     # Print startup information
     transport_type = config['transport']
