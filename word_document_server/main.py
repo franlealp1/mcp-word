@@ -66,6 +66,26 @@ def get_transport_config():
     return config
 
 
+def get_public_base_url():
+    """
+    Get the public base URL for download links.
+    
+    Returns:
+        str: Public base URL (e.g., "https://your-domain.com" or "http://localhost:8000")
+    """
+    # Check for public domain configuration
+    public_domain = os.getenv('PUBLIC_DOMAIN')
+    if public_domain:
+        # Use public domain with HTTPS by default
+        use_https = os.getenv('USE_HTTPS', 'true').lower() == 'true'
+        protocol = 'https' if use_https else 'http'
+        return f"{protocol}://{public_domain}"
+    
+    # Fallback to internal configuration (for local development)
+    config = get_transport_config()
+    return f"http://{config['host']}:{config['port']}"
+
+
 # Temporary file management
 TEMP_FILES_DIR = Path("/tmp/mcp_files")
 DB_FILE = TEMP_FILES_DIR / "file_registry.db"
@@ -470,9 +490,8 @@ def register_tools():
             # Register the file for cleanup
             file_id = register_temp_file(str(temp_file_path), original_filename, filename, cleanup_hours)
             
-            # Get the public URL (we need to determine the base URL dynamically)
-            config = get_transport_config()
-            base_url = f"http://{config['host']}:{config['port']}"
+            # Get the public URL for download links
+            base_url = get_public_base_url()
             download_url = f"{base_url}/files/{file_id}"
             
             expires_at = datetime.now() + timedelta(hours=cleanup_hours)
@@ -843,8 +862,7 @@ def register_tools():
                     expires_at = datetime.fromisoformat(temp_file_info["expires_at"])
                     if datetime.now() <= expires_at:
                         # Generate download URL
-                        config = get_transport_config()
-                        base_url = f"http://{config['host']}:{config['port']}"
+                        base_url = get_public_base_url()
                         download_url = f"{base_url}/files/{temp_file_info['file_id']}"
                         
                         return {
@@ -914,8 +932,7 @@ def register_tools():
             """, (datetime.now().isoformat(),))
             
             documents = []
-            config = get_transport_config()
-            base_url = f"http://{config['host']}:{config['port']}"
+            base_url = get_public_base_url()
             
             for row in cursor.fetchall():
                 file_id, original_filename, user_filename, created_at, expires_at, download_count = row

@@ -36,21 +36,17 @@ When calling create_document_with_download_link, always check the response for a
 If present, provide this URL to the user and explain they can click it to download the document.
 ```
 
-### 2. **URL Format Issues** 
+### 2. **URL Format Issues** ✅ FIXED
 **Issue**: The generated URL uses `0.0.0.0:8000` which won't work for external access.
 
-**Current**: `http://0.0.0.0:8000/files/{file_id}`  
-**Should be**: `https://your-domain.com/files/{file_id}`
+**Current**: `http://0.0.0.0:8000/files/{file_id}` ❌  
+**Fixed**: `https://your-domain.com/files/{file_id}` ✅
 
-**Root cause**: The `get_transport_config()` function uses:
-```python
-config = {
-    'host': '0.0.0.0',  # Internal binding
-    'port': 8000
-}
-```
+**Solution**: Added environment variables for public domain configuration:
+- `PUBLIC_DOMAIN=your-domain.coolify.app`
+- `USE_HTTPS=true`
 
-**Solution**: The URL should use the public domain, not internal IP.
+See `COOLIFY_SETUP.md` for complete setup instructions.
 
 ### 3. **MCP Tool Response Parsing**
 **Issue**: The n8n MCP client might not be properly parsing the JSON response.
