@@ -30,7 +30,8 @@ from word_document_server.tools import (
 from word_document_server.tools.content_tools import replace_paragraph_block_below_header_tool
 from word_document_server.tools.content_tools import replace_block_between_manual_anchors_tool
 from word_document_server.tools.content_tools import modify_table_cell as modify_table_cell_func
-from typing import Optional, List
+from word_document_server.tools import batch_document_tools
+from typing import Optional, List, Dict, Any, Union
 
 def get_transport_config():
     """
@@ -965,6 +966,202 @@ def register_tools():
                 "document_count": 0,
                 "documents": []
             }
+
+    # ULTRA-EFFICIENT BATCH DOCUMENT CREATION TOOLS
+    # These tools reduce 20+ calls to 1-3 calls for complex documents
+
+    @mcp.tool()
+    async def create_complete_document_with_sections(
+        filename: str,
+        title: str,
+        sections: List[Dict[str, Any]],
+        tables: Optional[List[Dict[str, Any]]] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        cleanup_hours: int = 24
+    ) -> Dict[str, Any]:
+        """Create a complete document with multiple sections, tables, and formatting in ONE call.
+
+        ULTRA-EFFICIENT: Replaces 15-20 individual tool calls with 1 single call.
+        Perfect for complex technical documents, reports, and multi-section content.
+
+        Args:
+            filename: Document filename
+            title: Main document title (will be centered, level 0 heading)
+            sections: List of sections with content and formatting
+            tables: Optional list of tables to insert
+            metadata: Optional document metadata (author, subject, keywords, comments)
+            cleanup_hours: Hours until auto-cleanup (default 24)
+
+        Section format:
+            {
+                "heading": "Section Title",
+                "level": 1,  # Heading level 1-6
+                "content": "Complete paragraph content. Can include multiple paragraphs separated by \\n\\n",
+                "style": "Normal",  # Optional paragraph style
+                "table_after": 0,  # Optional: insert table index after this section
+                "page_break": false  # Optional: add page break after section
+            }
+
+        Table format:
+            {
+                "rows": 5,
+                "cols": 3,
+                "data": [["Header1", "Header2", "Header3"], ["Row1Col1", "Row1Col2", "Row1Col3"]],
+                "has_header": true,
+                "title": "Table Title",
+                "style": "Medium Grid 1 Accent 1",
+                "alignment": "center"
+            }
+
+        Example usage for technical report:
+            sections = [
+                {
+                    "heading": "1. INTRODUCCIÓN",
+                    "level": 1,
+                    "content": "Complete introduction with all context and background information...",
+                },
+                {
+                    "heading": "2. ANÁLISIS TÉCNICO",
+                    "level": 1,
+                    "content": "Detailed technical analysis with findings and measurements...",
+                    "table_after": 0
+                }
+            ]
+
+            tables = [
+                {
+                    "rows": 4,
+                    "cols": 3,
+                    "data": [["Parameter", "Value", "Unit"], ["Height", "37.5", "m"]],
+                    "has_header": true,
+                    "title": "Technical Specifications"
+                }
+            ]
+        """
+        return await batch_document_tools.create_complete_document_with_sections(
+            filename, title, sections, tables, metadata, cleanup_hours
+        )
+
+    @mcp.tool()
+    async def create_complete_document_with_download_link_and_sections(
+        filename: str,
+        title: str,
+        sections: List[Dict[str, Any]],
+        tables: Optional[List[Dict[str, Any]]] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        cleanup_hours: int = 24
+    ) -> Dict[str, Any]:
+        """Create complete document with sections AND return download link in ONE call.
+
+        ULTIMATE EFFICIENCY: Complete document creation + download link in 1 call.
+        Reduces 20+ tool calls to 1 for complex documents.
+
+        Perfect for n8n workflows - creates entire document and returns downloadable URL.
+
+        Args:
+            Same as create_complete_document_with_sections
+
+        Returns:
+            {
+                "success": true,
+                "message": "Complete document created successfully",
+                "download_url": "https://domain.com/files/uuid",
+                "file_id": "uuid",
+                "sections_processed": 5,
+                "tables_created": 2,
+                "expires_at": "2024-12-01T12:00:00"
+            }
+        """
+        return await batch_document_tools.create_complete_document_with_download_link_and_sections(
+            filename, title, sections, tables, metadata, cleanup_hours
+        )
+
+    @mcp.tool()
+    async def add_multiple_sections_batch(
+        filename: str,
+        sections: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """Add multiple sections to existing document in ONE call.
+
+        EFFICIENCY BOOSTER: Add many sections at once instead of one-by-one.
+        Works with both regular files and temp documents (smart resolver).
+
+        Args:
+            filename: Existing document filename
+            sections: List of sections to add (same format as create_complete_document_with_sections)
+
+        Section format:
+            {
+                "heading": "New Section Title",
+                "level": 1,
+                "content": "Complete section content...",
+                "style": "Normal",
+                "page_break": false
+            }
+        """
+        return await batch_document_tools.add_multiple_sections_batch(filename, sections)
+
+    @mcp.tool()
+    async def create_technical_report_template(
+        filename: str,
+        report_data: Dict[str, Any],
+        cleanup_hours: int = 24
+    ) -> Dict[str, Any]:
+        """Create a complete technical report using predefined template in ONE call.
+
+        SPECIALIZED TEMPLATE: Perfect for technical reports like dam inspections,
+        engineering analyses, pathology reports, etc.
+
+        Args:
+            filename: Document filename
+            report_data: All report data in structured format
+            cleanup_hours: Hours until auto-cleanup
+
+        Report data format:
+            {
+                "title": "INFORME TÉCNICO INTEGRAL - PRESA ROSARITO",
+                "subtitle": "Análisis de Patologías de Hormigón e Informe Hidrológico",
+                "metadata": {"author": "Engineer Name", "subject": "Technical Report"},
+                "introduction": {
+                    "content": "Introduction text with context...",
+                    "key_data": {"presa": "Rosarito", "rio": "Tiétar", "year": "2024"}
+                },
+                "pathology_report": {
+                    "general_state": "BUENO EN GENERAL",
+                    "detected_pathologies": ["Proceso expansivo", "Agrietamiento", "Filtraciones"],
+                    "expansion_process": {
+                        "type": "Posible reacción álcali-árido",
+                        "velocity": "1,2 mm/campaña",
+                        "affected_zones": "Toda la coronación"
+                    },
+                    "vertical_movements": {
+                        "headers": ["Fecha", "CCN5", "CCN6", "CCN7", "CCN8", "CCN9", "CCN10"],
+                        "data": [
+                            ["22/10/2003", "0,4", "0,6", "-0,6", "-1,1", "-0,6", "-0,4"],
+                            ["02/11/2006", "3,2", "2,5", "2,9", "2,8", "2,7", "3,2"]
+                        ]
+                    }
+                },
+                "hydrological_report": {
+                    "basin_characteristics": {
+                        "extension": "1.750 km²",
+                        "average_height": "494 m",
+                        "highest_point": "Pico de La Mira (2.343 m)"
+                    },
+                    "annual_contributions": {
+                        "annual_average": "824-827 hm³",
+                        "maximum": "1.964 hm³",
+                        "minimum": "127 hm³"
+                    }
+                },
+                "conclusions": "Complete conclusions with recommendations..."
+            }
+
+        Returns complete document with download link and detailed statistics.
+        """
+        return await batch_document_tools.create_technical_report_template(
+            filename, report_data, cleanup_hours
+        )
 
 
 def run_server():

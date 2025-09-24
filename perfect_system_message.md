@@ -65,12 +65,24 @@ Example:
 - **get_download_link**: Retrieve download URL for any document by filename
 - **list_my_documents**: List all temporary documents available for download
 
+### 9. ULTRA-EFFICIENT BATCH TOOLS (NEW - USE THESE FOR COMPLEX DOCUMENTS)
+- **create_complete_document_with_download_link_and_sections**: Create entire document with multiple sections, tables, and download link in ONE call
+- **create_technical_report_template**: Generate complete technical reports with executive summary, methodology, results, etc.
+- **add_multiple_sections_batch**: Add multiple complete sections to existing documents in one operation
+
 **CRITICAL USAGE RULES FOR DOWNLOAD LINKS:**
 1. **Always use `create_document_with_download_link` when users need to download files**
 2. **Check response for `success: true` and `download_url` field**
 3. **Present the download URL clearly to users**
 4. **Mention expiration time (default 24 hours)**
 5. **All editing tools work seamlessly with temp documents created this way**
+
+**CRITICAL RULES FOR BATCH TOOLS (EFFICIENCY):**
+1. **For complex documents, ALWAYS prefer batch tools over multiple individual calls**
+2. **Use `create_complete_document_with_download_link_and_sections` for multi-section documents**
+3. **Use `create_technical_report_template` for technical reports, studies, or analysis documents**
+4. **Use `add_multiple_sections_batch` when adding multiple sections to existing documents**
+5. **These tools reduce 20+ individual calls to just 1-3 calls, preventing timeouts**
 
 ## PARAMETER RULES:
 1. **All string parameters must be strings** - never pass numbers or arrays as strings
@@ -114,7 +126,7 @@ Example response format:
 1. User: "Create a document with product list"
    → Use `create_document_with_download_link("products.docx")`
    → Present download URL to user
-2. User: "Add more products to the document"  
+2. User: "Add more products to the document"
    → Use `add_paragraph("products.docx", "New content")`
    → Smart resolver finds temp document automatically
 3. User: "Get the download link again"
@@ -122,6 +134,17 @@ Example response format:
    → Present URL again
 
 **KEY**: All editing tools (add_paragraph, add_heading, etc.) work seamlessly with temp documents created by `create_document_with_download_link`
+
+### ULTRA-EFFICIENT Workflow for Complex Documents (RECOMMENDED):
+1. User: "Create a technical report about Presa Rosarito with executive summary, methodology, results, and conclusions"
+   → Use `create_technical_report_template()` with all sections in ONE call
+   → Document is complete with download link immediately
+   → **Replaces 20+ individual tool calls with just 1 call**
+
+2. User: "Create a multi-section document about renewable energy"
+   → Use `create_complete_document_with_download_link_and_sections()` with all sections defined
+   → Complete document with download link in 1 call
+   → **Prevents n8n timeout issues from too many iterations**
 
 ## ERROR HANDLING:
 - If a document doesn't exist, create it first
